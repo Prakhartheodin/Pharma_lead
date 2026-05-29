@@ -1,0 +1,8 @@
+scrapling[all]
+fastapi
+uvicorn[standard]
+httpx
+phonenumbers
+tldextract
+pydantic>=2
+openai

@@ -1,0 +1,27 @@
+# deps
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# env — real secrets, NEVER commit. Explicitly excluded:
+.env
+*.env
+**/.env
+api/.env
+scraper/.env
+frontend/.env
+# keep the example templates (no secrets)
+!.env.example
+!**/.env.example
+!api/.env.example
+!scraper/.env.example
+
+# build
+api/dist/
+frontend/dist/
+
+# runtime
+scraper/checkpoints/
+*.log

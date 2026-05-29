@@ -1,0 +1,68 @@
+# Pharma Lead Scraper — local/demo stack.
+# One network; services reach each other by name (api, scraper, mongo).
+# Start everything: docker compose up --build
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017" # exposed for local inspection; remove for a sealed demo
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - pharma
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    env_file:
+      - ./api/.env
+    environment:
+      # container-DNS, not localhost — see plan "Worker Communication"
+      MONGODB_URL: mongodb://mongo:27017/pharma
+      SCRAPER_URL: http://scraper:8000
+      NODE_CALLBACK_BASE: http://api:3000
+    ports:
+      - "3000:3000" # frontend-facing API
+    depends_on:
+      - mongo
+      - scraper
+    networks:
+      - pharma
+
+  scraper:
+    build: ./scraper
+    restart: unless-stopped
+    env_file:
+      - ./scraper/.env
+    environment:
+      # must match api's PHARMA_WORKER_SECRET
+      NODE_CALLBACK_BASE: http://api:3000
+    # no public port — only the api talks to it, over the internal network
+    expose:
+      - "8000"
+    volumes:
+      # Scrapling crawldir checkpoints (pause/resume) survive restarts
+      - scraper-checkpoints:/app/checkpoints
+    networks:
+      - pharma
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+    networks:
+      - pharma
+
+volumes:
+  mongo-data:
+  scraper-checkpoints:
+
+networks:
+  pharma:
+    driver: bridge
