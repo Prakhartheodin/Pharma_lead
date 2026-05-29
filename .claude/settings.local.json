@@ -30,7 +30,16 @@
       "Bash(gh auth *)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git branch *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "Bash(echo \"remote files: $\\(git ls-tree -r --name-only origin/main)",
+      "Bash(python -c \"import json; print\\(json.dumps\\(json.load\\(open\\('api/package.json'\\)\\).get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(python -c \"import json; print\\(json.dumps\\(json.load\\(open\\('frontend/package.json'\\)\\).get\\('scripts',{}\\), indent=2\\)\\)\")"
     ]
   }
 }

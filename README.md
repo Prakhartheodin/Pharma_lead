@@ -87,26 +87,71 @@ the api via an internal callback.
 
 ## Quick start
 
-**Prerequisites:** Docker + Docker Compose. For live data you also need a Google Cloud
-project (Places API New + Gmail API enabled, OAuth client) and an OpenAI API key.
+For live data you need a Google Cloud project (Places API New + Gmail API enabled,
+OAuth client) and an OpenAI API key. Without external keys the stack still boots;
+discovery/classification/email just stay inactive until the relevant keys are set.
+
+**Step 0 — create env files** (both run modes need these):
 
 ```bash
-# 1. Create env files from the templates
 cp api/.env.example api/.env
 cp scraper/.env.example scraper/.env
+# Fill in the keys (see tables below). Set the SAME long random
+# PHARMA_WORKER_SECRET in BOTH files.
+```
 
-# 2. Fill in the keys (see tables below). Set the SAME long random
-#    PHARMA_WORKER_SECRET in BOTH files.
+> The `.env.example` defaults already point at `localhost` (for running without
+> Docker). `docker compose` overrides the host-to-host URLs with container DNS
+> automatically, so the same `.env` works for both modes.
 
-# 3. Build and run the full stack
+### Option A — With Docker (recommended)
+
+Requires **Docker + Docker Compose**. One command builds and runs everything:
+
+```bash
 docker compose up --build
 ```
 
 - Frontend → http://localhost:3001
 - API → http://localhost:3000
+- Scraper → internal only · MongoDB → `localhost:27017`
 
-Without external keys the stack still boots; discovery/classification/email just stay
-inactive until the relevant keys are set.
+Stop with `Ctrl+C`; `docker compose down` to remove containers (data persists in the
+`mongo-data` volume). Rebuild a single service: `docker compose up -d --build api`.
+
+### Option B — Without Docker (local dev)
+
+Requires **Node 20+**, **Python 3.12+**, and a local **MongoDB** (or a connection
+string in `api/.env`). Run each service in its own terminal:
+
+```bash
+# 1. MongoDB — start your local instance (or Docker just for Mongo):
+docker run -d -p 27017:27017 --name pharma-mongo mongo:7
+#    (or use an existing mongod / MongoDB Atlas URL in api/.env)
+
+# 2. Scraper (Python / FastAPI) — terminal 1
+cd scraper
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+scrapling install            # one-time: installs the headless browser for crawling
+uvicorn app.main:app --reload --port 8000
+
+# 3. API (Node / Express) — terminal 2
+cd api
+npm install
+npm run dev                  # tsx watch on http://localhost:3000
+
+# 4. Frontend (React / Vite) — terminal 3
+cd frontend
+npm install
+npm run dev                  # http://localhost:3001
+```
+
+- Frontend → http://localhost:3001  ·  API → http://localhost:3000  ·  Scraper → http://localhost:8000
+
+With the `.env.example` defaults, the api reaches the scraper at `http://localhost:8000`
+and Mongo at `mongodb://127.0.0.1:27017/pharma`, and the scraper calls back to
+`http://localhost:3000` — no extra config needed for local dev.
 
 ---
 

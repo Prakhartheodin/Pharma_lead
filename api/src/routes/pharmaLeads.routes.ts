@@ -225,7 +225,10 @@ pharmaLeadsRouter.post('/search/:jobId/cancel', (_req, res) => res.json({ todo: 
 
 pharmaLeadsRouter.get('/', async (req, res) => {
   const filter: Record<string, unknown> = {};
-  if (req.query.jobId) filter.jobId = req.query.jobId;
+  const jobId = req.query.jobId;
+  // Coerce + validate to a 24-hex ObjectId string so a `?jobId[$ne]=` style
+  // object can't reach the Mongo query (NoSQL operator injection).
+  if (typeof jobId === 'string' && /^[a-f\d]{24}$/i.test(jobId)) filter.jobId = jobId;
   if (req.query.saved === 'true') filter.saved = true;
   const leads = await PharmaLead.find(filter).sort({ confidence: -1 }).limit(200);
   res.json(leads);
